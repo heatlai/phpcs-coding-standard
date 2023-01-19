@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="HeatlaiCodingStandard" xsi:noNamespaceSchemaLocation="../vendor/squizlabs/php_codesniffer/phpcs.xsd">
+    <autoload>./../autoload-bootstrap.php</autoload>
+    <description>
+        Do not include whole ruleset.
+        Write your own ruleset.xml by referencing only the selected sniffs.
+    </description>
+</ruleset>

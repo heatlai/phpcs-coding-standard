@@ -1,0 +1,24 @@
+# 此文件為根設定
+root = true
+
+[*]
+# utf-8 編碼
+charset = utf-8
+# Unix 換行風格
+end_of_line = lf
+# 縮排使用空格
+indent_style = space
+# 縮排寬度 4 格
+indent_size = 4
+# 自動移除行尾空白
+trim_trailing_whitespace = true
+# 檔案結尾自動保留一個空白行
+insert_final_newline = true
+
+[*.md]
+# 不要移除行尾空白，會破壞 markdown 排版
+trim_trailing_whitespace = false
+
+[*.json]
+# JSON 不要留空白行
+insert_final_newline = false

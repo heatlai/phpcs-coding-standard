@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="PHP_CodeSniffer">
+    <!-- PHP >= 8.0 -->
+    <file>HeatlaiCodingStandard</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="4"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <!-- PHP 版本相容性檢查 -->
+    <config name="testVersion" value="8.0"/>
+    <rule ref="PHPCompatibility"/>
+
+    <!-- Include the whole PSR12 standard -->
+    <rule ref="PSR12">
+        <type>warning</type>
+    </rule>
+</ruleset>

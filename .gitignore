@@ -1,0 +1,15 @@
+/bin
+/composer.lock
+/phpunit.xml
+/temp
+/vendor
+*.log
+
+# IDE
+/.idea
+/.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
