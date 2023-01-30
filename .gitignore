@@ -13,3 +13,6 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# dev
+/HeatlaiCodingStandard/Sniffs/Dev/*
