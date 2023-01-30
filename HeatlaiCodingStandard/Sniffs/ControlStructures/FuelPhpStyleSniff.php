@@ -8,14 +8,6 @@ use HeatlaiCodingStandard\Helpers\Str;
 
 class FuelPhpStyleSniff implements Sniff
 {
-    protected $multiLineStatementStructures = [
-        T_IF => true,
-        T_ELSEIF => true,
-        T_FOR => true,
-        T_FOREACH => true,
-        T_WHILE => true,
-    ];
-
     public function register()
     {
         return [
@@ -28,7 +20,7 @@ class FuelPhpStyleSniff implements Sniff
             T_IF,
             T_ELSEIF,
             T_ELSE,
-            // T_SWITCH, // TODO: T_SWITCH
+            T_SWITCH,
         ];
     }
 
@@ -47,38 +39,38 @@ class FuelPhpStyleSniff implements Sniff
 
         // Scope keyword should be on a new line.
         if (
-            $this->hasOpeningBrace($token)
-            || $token['code'] === T_WHILE
+            $this->hasBraces($token)
+            || ($token['code'] === T_WHILE)
         ) {
             $this->detectScopeKeywordOnNewLine($phpcsFile, $tokens, $stackPtr);
         }
 
         // Expect 1 space after keyword, Skip T_ELSE, T_DO, T_TRY.
         if (
-            $this->hasOpeningBrace($token)
-            && in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false
+            $this->hasBraces($token)
+            && (in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false)
         ) {
             $this->detectSpaceAfterScopeKeyword($phpcsFile, $tokens, $stackPtr);
         }
 
         // Opening brace should be on a new line. Skip multi line statement
-        if ($this->hasOpeningBrace($token)) {
-            if ($this->isMultiLineStatement($tokens, $token) === false) {
-                $this->detectOpeningBraceOnNewLine($phpcsFile, $tokens, $stackPtr);
-            } else {
+        if ($this->hasBraces($token)) {
+            if ($this->isMultiLineStatement($tokens, $token)) {
                 $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $tokens, $stackPtr);
+            } else {
+                $this->detectOpeningBraceOnNewLine($phpcsFile, $tokens, $stackPtr);
             }
         }
 
         // Closing brace should be on a new line.
-        if ($this->hasOpeningBrace($token)) {
+        if ($this->hasBraces($token)) {
             $this->detectClosingBraceOnNewLine($phpcsFile, $tokens, $stackPtr);
         }
     }
 
     protected function isMultiLineStatement($tokens, $token): bool
     {
-        if (isset($this->multiLineStatementStructures[$token['code']]) === false) {
+        if (isset($token['parenthesis_opener'], $token['parenthesis_closer']) === false) {
             return false;
         }
 
@@ -88,9 +80,10 @@ class FuelPhpStyleSniff implements Sniff
         return $tokens[$openingBracket]['line'] !== $tokens[$closingBracket]['line'];
     }
 
-    protected function hasOpeningBrace($token): bool
+    protected function hasBraces($token): bool
     {
-        return isset($token['scope_opener']); // "{"
+        // Both "{" and "}"
+        return isset($token['scope_opener'], $token['scope_closer']);
     }
 
     protected function detectScopeKeywordOnNewLine($phpcsFile, $tokens, $stackPtr): void
