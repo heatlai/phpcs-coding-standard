@@ -13,7 +13,5 @@
     <rule ref="PHPCompatibility"/>
 
     <!-- Include the whole PSR12 standard -->
-    <rule ref="PSR12">
-        <type>warning</type>
-    </rule>
+    <rule ref="PSR12"/>
 </ruleset>

@@ -145,4 +145,20 @@ class Str
     {
         return mb_substr($string, $start, $length, 'UTF-8');
     }
+
+    /**
+     * Return the length of the given string.
+     *
+     * @param  string  $value
+     * @param  string|null  $encoding
+     * @return int
+     */
+    public static function length($value, $encoding = null)
+    {
+        if ($encoding) {
+            return mb_strlen($value, $encoding);
+        }
+
+        return mb_strlen($value);
+    }
 }
