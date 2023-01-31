@@ -66,6 +66,13 @@ class FuelPhpStyleSniff implements Sniff
         if ($this->hasBraces($token)) {
             $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
         }
+
+        if (
+            $this->hasBraces($token)
+            && $token['code'] === T_SWITCH
+        ) {
+            $this->detectBreakIndentSameLevelAsSwitchCase($phpcsFile, $stackPtr);
+        }
     }
 
     protected function isMultiLineStatement($tokens, $token): bool
@@ -245,5 +252,48 @@ class FuelPhpStyleSniff implements Sniff
                 $phpcsFile->fixer->endChangeset();
             }
         }
+    }
+
+    protected function detectBreakIndentSameLevelAsSwitchCase(File $phpcsFile, $stackPtr)
+    {
+        $tokens = $phpcsFile->getTokens();
+        $switch = $tokens[$stackPtr];
+        $nextCase = $stackPtr;
+
+        while (($nextCase = $this->findNextCase($phpcsFile, ($nextCase + 1), $switch['scope_closer'])) !== false) {
+            $opener = $tokens[$nextCase]['scope_opener'];
+            $nextCloser = $tokens[$nextCase]['scope_closer'];
+            if (($tokens[$opener]['code'] === T_COLON) && $tokens[$nextCloser]['scope_condition'] === $nextCase) {
+                $prev = $phpcsFile->findPrevious(T_WHITESPACE, ($nextCloser - 1), $nextCase, true);
+                if ($tokens[$prev]['line'] !== $tokens[$nextCloser]['line']) {
+                    $diff = ($tokens[$nextCase]['column'] - $tokens[$nextCloser]['column']);
+                    if ($diff !== 0) {
+                        $error = 'Terminating statement must be indented to the same level as the CASE';
+                        $fix = $phpcsFile->addFixableError($error, $nextCloser, 'SwitchCaseBreakIndent');
+                        if ($fix === true) {
+                            if ($diff > 0) {
+                                $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat(' ', $diff));
+                            } else {
+                                $phpcsFile->fixer->substrToken(($nextCloser - 1), 0, $diff);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function findNextCase(File $phpcsFile, $stackPtr, $end)
+    {
+        $tokens = $phpcsFile->getTokens();
+        while (($stackPtr = $phpcsFile->findNext([T_CASE, T_DEFAULT, T_SWITCH], $stackPtr, $end)) !== false) {
+            // Skip nested SWITCH statements; they are handled on their own.
+            if ($tokens[$stackPtr]['code'] === T_SWITCH) {
+                $stackPtr = $tokens[$stackPtr]['scope_closer'];
+                continue;
+            }
+            break;
+        }
+        return $stackPtr;
     }
 }
