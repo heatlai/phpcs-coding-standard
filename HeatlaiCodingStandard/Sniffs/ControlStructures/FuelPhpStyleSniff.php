@@ -105,7 +105,9 @@ class FuelPhpStyleSniff implements Sniff
 
         if ($keywordLine === $prevContentLine) {
             $error = 'Scope keyword "%s" should be on a new line';
-            $data = [$token['content'], $tokens[$prevContentPtr]['content']];
+            $data = [
+                $token['content'],
+            ];
             $fix = $phpcsFile->addFixableError($error, $stackPtr, 'ScopeKeywordOnNewLine', $data);
             if ($fix === true) {
                 $phpcsFile->fixer->beginChangeset();
