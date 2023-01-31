@@ -161,4 +161,28 @@ class Str
 
         return mb_strlen($value);
     }
+
+    /**
+     * Determine if a given string contains a given substring.
+     *
+     * @param  string  $haystack
+     * @param  string|string[]  $needles
+     * @param  bool  $ignoreCase
+     * @return bool
+     */
+    public static function contains($haystack, $needles, $ignoreCase = false)
+    {
+        if ($ignoreCase) {
+            $haystack = mb_strtolower($haystack);
+            $needles = array_map('mb_strtolower', (array) $needles);
+        }
+
+        foreach ((array) $needles as $needle) {
+            if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

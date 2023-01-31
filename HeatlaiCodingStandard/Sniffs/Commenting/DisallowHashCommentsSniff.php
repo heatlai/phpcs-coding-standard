@@ -20,7 +20,7 @@ class DisallowHashCommentsSniff implements Sniff
     /**
      * Processes this sniff, when one of its tokens is encountered.
      *
-     * @param  \PHP_CodeSniffer\Files\File  $phpcsFile  The current file being checked.
+     * @param  File  $phpcsFile  The current file being checked.
      * @param  int  $stackPtr  The position of the current token in the stack passed in $tokens.
      *
      * @return void

@@ -32,7 +32,7 @@ class FuelPhpStyleSniff implements Sniff
      *
      * @return void
      */
-    public function process(File $phpcsFile, $stackPtr): void
+    public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
@@ -42,7 +42,7 @@ class FuelPhpStyleSniff implements Sniff
             $this->hasBraces($token)
             || ($token['code'] === T_WHILE)
         ) {
-            $this->detectScopeKeywordOnNewLine($phpcsFile, $tokens, $stackPtr);
+            $this->detectScopeKeywordOnNewLine($phpcsFile, $stackPtr);
         }
 
         // Expect 1 space after keyword, Skip T_ELSE, T_DO, T_TRY.
@@ -50,21 +50,21 @@ class FuelPhpStyleSniff implements Sniff
             $this->hasBraces($token)
             && (in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false)
         ) {
-            $this->detectSpaceAfterScopeKeyword($phpcsFile, $tokens, $stackPtr);
+            $this->detectSpaceAfterScopeKeyword($phpcsFile, $stackPtr);
         }
 
         // Opening brace should be on a new line. Skip multi line statement
         if ($this->hasBraces($token)) {
             if ($this->isMultiLineStatement($tokens, $token)) {
-                $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $tokens, $stackPtr);
+                $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $stackPtr);
             } else {
-                $this->detectOpeningBraceOnNewLine($phpcsFile, $tokens, $stackPtr);
+                $this->detectOpeningBraceOnNewLine($phpcsFile, $stackPtr);
             }
         }
 
         // Closing brace should be on a new line.
         if ($this->hasBraces($token)) {
-            $this->detectClosingBraceOnNewLine($phpcsFile, $tokens, $stackPtr);
+            $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
         }
     }
 
@@ -86,8 +86,9 @@ class FuelPhpStyleSniff implements Sniff
         return isset($token['scope_opener'], $token['scope_closer']);
     }
 
-    protected function detectScopeKeywordOnNewLine($phpcsFile, $tokens, $stackPtr): void
+    protected function detectScopeKeywordOnNewLine(File $phpcsFile, $stackPtr)
     {
+        $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
 
         $prevContentPtr = $phpcsFile->findPrevious(T_WHITESPACE, ($stackPtr - 1), null, true);
@@ -107,8 +108,9 @@ class FuelPhpStyleSniff implements Sniff
         }
     }
 
-    protected function detectSpaceAfterScopeKeyword($phpcsFile, $tokens, $stackPtr): void
+    protected function detectSpaceAfterScopeKeyword(File $phpcsFile, $stackPtr)
     {
+        $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
         $nextToken = $tokens[($stackPtr + 1)];
 
@@ -116,13 +118,12 @@ class FuelPhpStyleSniff implements Sniff
         if ($nextToken['code'] !== T_WHITESPACE) {
             $found = 0;
         } elseif ($nextToken['content'] !== ' ') { // if not only 1 space
-            if (str_contains($nextToken['content'], $phpcsFile->eolChar)) {
+            if (Str::contains($nextToken['content'], $phpcsFile->eolChar)) {
                 $found = 'newline';
             } else {
                 $found = Str::length($nextToken['content']);
             }
         }
-
         if ($found !== 1) {
             $error = 'Expected 1 space after scope keyword "%s", found "%s"';
             $data = [
@@ -141,8 +142,9 @@ class FuelPhpStyleSniff implements Sniff
         }
     }
 
-    protected function detectOpeningBraceOnNewLine($phpcsFile, $tokens, $stackPtr): void
+    protected function detectOpeningBraceOnNewLine(File $phpcsFile, $stackPtr)
     {
+        $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
 
         $openingBracePtr = $token['scope_opener']; // "{"
@@ -182,8 +184,9 @@ class FuelPhpStyleSniff implements Sniff
         }
     }
 
-    protected function detectClosingBraceOnNewLine($phpcsFile, $tokens, $stackPtr): void
+    protected function detectClosingBraceOnNewLine(File $phpcsFile, $stackPtr)
     {
+        $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
 
         $closingBracePtr = $token['scope_closer']; // "}"
@@ -210,8 +213,9 @@ class FuelPhpStyleSniff implements Sniff
         }
     }
 
-    protected function detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $tokens, $stackPtr): void
+    protected function detectClosingBracketAndOpeningBraceOnSameLine(File $phpcsFile, $stackPtr)
     {
+        $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
 
         $closingBracketPtr = $token['parenthesis_closer']; // ")"
