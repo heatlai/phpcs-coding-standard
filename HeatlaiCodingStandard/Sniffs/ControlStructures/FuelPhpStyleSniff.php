@@ -36,41 +36,38 @@ class FuelPhpStyleSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
         $token = $tokens[$stackPtr];
+        $hasBraces = $this->hasBraces($token);
 
         // Scope keyword should be on a new line.
         if (
-            $this->hasBraces($token)
+            $hasBraces
             || ($token['code'] === T_WHILE)
         ) {
             $this->detectScopeKeywordOnNewLine($phpcsFile, $stackPtr);
         }
 
+        if ($hasBraces === false) {
+            // Skip if without braces
+            return;
+        }
+
         // Expect 1 space after keyword, Skip T_ELSE, T_DO, T_TRY.
-        if (
-            $this->hasBraces($token)
-            && (in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false)
-        ) {
+        if (in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false) {
             $this->detectSpaceAfterScopeKeyword($phpcsFile, $stackPtr);
         }
 
         // Opening brace should be on a new line. Skip multi line statement
-        if ($this->hasBraces($token)) {
-            if ($this->isMultiLineStatement($tokens, $token)) {
-                $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $stackPtr);
-            } else {
-                $this->detectOpeningBraceOnNewLine($phpcsFile, $stackPtr);
-            }
+        if ($this->isMultiLineStatement($tokens, $token)) {
+            $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $stackPtr);
+        } else {
+            $this->detectOpeningBraceOnNewLine($phpcsFile, $stackPtr);
         }
 
         // Closing brace should be on a new line.
-        if ($this->hasBraces($token)) {
-            $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
-        }
+        $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
 
-        if (
-            $this->hasBraces($token)
-            && $token['code'] === T_SWITCH
-        ) {
+        // Break indent should be same level as switch case
+        if ($token['code'] === T_SWITCH) {
             $this->detectBreakIndentSameLevelAsSwitchCase($phpcsFile, $stackPtr);
         }
     }
