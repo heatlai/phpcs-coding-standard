@@ -35,14 +35,10 @@ class FuelPhpStyleSniff implements Sniff
     public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
-        $token = $tokens[$stackPtr];
-        $hasBraces = $this->hasBraces($token);
+        $hasBraces = $this->hasBraces($phpcsFile, $stackPtr);
 
         // Scope keyword should be on a new line.
-        if (
-            $hasBraces
-            || ($token['code'] === T_WHILE)
-        ) {
+        if ($hasBraces === true || $tokens[$stackPtr]['code'] === T_WHILE) {
             $this->detectScopeKeywordOnNewLine($phpcsFile, $stackPtr);
         }
 
@@ -52,12 +48,12 @@ class FuelPhpStyleSniff implements Sniff
         }
 
         // Expect 1 space after keyword, Skip T_ELSE, T_DO, T_TRY.
-        if (in_array($token['code'], [T_ELSE, T_DO, T_TRY], true) === false) {
+        if (in_array($tokens[$stackPtr]['code'], [T_ELSE, T_DO, T_TRY], true) === false) {
             $this->detectSpaceAfterScopeKeyword($phpcsFile, $stackPtr);
         }
 
         // Opening brace should be on a new line. Skip multi line statement
-        if ($this->isMultiLineStatement($tokens, $token)) {
+        if ($this->isMultiLineStatement($phpcsFile, $stackPtr) === true) {
             $this->detectClosingBracketAndOpeningBraceOnSameLine($phpcsFile, $stackPtr);
         } else {
             $this->detectOpeningBraceOnNewLine($phpcsFile, $stackPtr);
@@ -67,27 +63,29 @@ class FuelPhpStyleSniff implements Sniff
         $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
 
         // Break indent should be same level as switch case
-        if ($token['code'] === T_SWITCH) {
+        if ($tokens[$stackPtr]['code'] === T_SWITCH) {
             $this->detectBreakIndentSameLevelAsSwitchCase($phpcsFile, $stackPtr);
         }
     }
 
-    protected function isMultiLineStatement($tokens, $token): bool
+    protected function isMultiLineStatement(File $phpcsFile, $stackPtr): bool
     {
-        if (isset($token['parenthesis_opener'], $token['parenthesis_closer']) === false) {
+        $tokens = $phpcsFile->getTokens();
+        if (isset($tokens[$stackPtr]['parenthesis_opener'], $tokens[$stackPtr]['parenthesis_closer']) === false) {
             return false;
         }
 
-        $openingBracket = $token['parenthesis_opener']; // "("
-        $closingBracket = $token['parenthesis_closer']; // ")"
+        $openingBracket = $tokens[$stackPtr]['parenthesis_opener']; // "("
+        $closingBracket = $tokens[$stackPtr]['parenthesis_closer']; // ")"
 
         return $tokens[$openingBracket]['line'] !== $tokens[$closingBracket]['line'];
     }
 
-    protected function hasBraces($token): bool
+    protected function hasBraces(File $phpcsFile, $stackPtr): bool
     {
+        $tokens = $phpcsFile->getTokens();
         // Both "{" and "}"
-        return isset($token['scope_opener'], $token['scope_closer']);
+        return isset($tokens[$stackPtr]['scope_opener'], $tokens[$stackPtr]['scope_closer']);
     }
 
     protected function detectScopeKeywordOnNewLine(File $phpcsFile, $stackPtr)
@@ -124,7 +122,7 @@ class FuelPhpStyleSniff implements Sniff
         if ($nextToken['code'] !== T_WHITESPACE) {
             $found = 0;
         } elseif ($nextToken['content'] !== ' ') { // if not only 1 space
-            if (Str::contains($nextToken['content'], $phpcsFile->eolChar)) {
+            if (Str::contains($nextToken['content'], $phpcsFile->eolChar) === true) {
                 $found = 'newline';
             } else {
                 $found = Str::length($nextToken['content']);
@@ -156,7 +154,7 @@ class FuelPhpStyleSniff implements Sniff
         $openingBracePtr = $token['scope_opener']; // "{"
         $openingBraceLine = $tokens[$openingBracePtr]['line'];
 
-        if (in_array($token['code'], [T_ELSE, T_TRY, T_DO], true)) {
+        if (in_array($token['code'], [T_ELSE, T_TRY, T_DO], true) === true) {
             $keywordLine = $token['line'];
             // Measure from the scope opener.
             $lineDifference = ($openingBraceLine - $keywordLine);
@@ -262,7 +260,7 @@ class FuelPhpStyleSniff implements Sniff
         while (($nextCase = $this->findNextCase($phpcsFile, ($nextCase + 1), $switch['scope_closer'])) !== false) {
             $opener = $tokens[$nextCase]['scope_opener'];
             $nextCloser = $tokens[$nextCase]['scope_closer'];
-            if (($tokens[$opener]['code'] === T_COLON) && $tokens[$nextCloser]['scope_condition'] === $nextCase) {
+            if ($tokens[$opener]['code'] === T_COLON && $tokens[$nextCloser]['scope_condition'] === $nextCase) {
                 $prev = $phpcsFile->findPrevious(T_WHITESPACE, ($nextCloser - 1), $nextCase, true);
                 if ($tokens[$prev]['line'] !== $tokens[$nextCloser]['line']) {
                     $diff = ($tokens[$nextCase]['column'] - $tokens[$nextCloser]['column']);
