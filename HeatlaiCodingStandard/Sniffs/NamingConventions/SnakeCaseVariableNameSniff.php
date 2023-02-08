@@ -19,18 +19,20 @@ class SnakeCaseVariableNameSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
         $varName = trim($tokens[$stackPtr]['content']);
-        if (! $this->isSnakeOrConstFormat($varName)) {
-            $error = 'Variable "%s" is not in snake_case or CONST_NAME format.';
-            $data = [$varName];
-            $phpcsFile->addError($error, $stackPtr, 'Found', $data);
-        }
-    }
+        $snakeVarName = Str::snake($varName);
 
-    private function isSnakeOrConstFormat($varName): bool
-    {
-        return (
-            $varName === Str::snake($varName) // snake_case
-            || $varName === Str::upper($varName) // CONST_FORMAT
-        );
+        if ($varName === $snakeVarName) {
+            $phpcsFile->recordMetric($stackPtr, 'snake_case variable name', 'yes');
+            return;
+        }
+
+        $error = 'Variable "%s" is not in snake_case format. try "%s" or "%s"';
+        $data = [
+            $varName,
+            $snakeVarName,
+            Str::snake($varName, '')
+        ];
+        $phpcsFile->addError($error, $stackPtr, 'Found', $data);
+        $phpcsFile->recordMetric($stackPtr, 'snake_case variable name', 'no');
     }
 }

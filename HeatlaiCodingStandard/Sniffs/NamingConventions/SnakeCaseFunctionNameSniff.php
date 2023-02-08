@@ -47,22 +47,28 @@ class SnakeCaseFunctionNameSniff extends AbstractScopeSniff
         }
 
         $methodProps = $phpcsFile->getMethodProperties($stackPtr);
-        if ($methodName === Str::snake($methodName)) {
+        $snakeMethodName = Str::snake($methodName);
+        if ($methodName === $snakeMethodName) {
             $phpcsFile->recordMetric($stackPtr, 'snake_case method name', 'yes');
             return;
         }
 
+        $snakeMethodName2 = Str::snake($methodName, '');
         if ($methodProps['scope_specified'] === true) {
-            $error = '%s method name "%s" is not in snake_case format';
+            $error = '%s method name "%s" is not in snake_case format. try "%s" or "%s"';
             $data = [
                 Str::ucfirst($methodProps['scope']),
                 "{$className}::{$methodName}",
+                $snakeMethodName,
+                $snakeMethodName2
             ];
             $phpcsFile->addError($error, $stackPtr, 'ScopeFound', $data);
         } else {
-            $error = 'Method name "%s" is not in snake_case format';
+            $error = 'Method name "%s" is not in snake_case format. try "%s" or "%s"';
             $data = [
-                "{$className}::{$methodName}"
+                "{$className}::{$methodName}",
+                $snakeMethodName,
+                $snakeMethodName2
             ];
             $phpcsFile->addError($error, $stackPtr, 'Found', $data);
         }
@@ -86,13 +92,19 @@ class SnakeCaseFunctionNameSniff extends AbstractScopeSniff
             return;
         }
 
-        if ($functionName === Str::snake($functionName)) {
+        $snakeName = Str::snake($functionName);
+        if ($functionName === $snakeName) {
             $phpcsFile->recordMetric($stackPtr, 'snake_case function name', 'yes');
             return;
         }
 
-        $error = 'Function name "%s" is not in snake_case format';
-        $phpcsFile->addError($error, $stackPtr, 'Found', [$functionName]);
+        $error = 'Function name "%s" is not in snake_case format. try "%s" or "%s"';
+        $data = [
+            $functionName,
+            $snakeName,
+            Str::snake($functionName, '')
+        ];
+        $phpcsFile->addError($error, $stackPtr, 'Found', $data);
         $phpcsFile->recordMetric($stackPtr, 'snake_case function name', 'no');
     }
 }
