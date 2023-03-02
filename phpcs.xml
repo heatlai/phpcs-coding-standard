@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <ruleset name="PHP_CodeSniffer">
-    <!-- PHP >= 7.0 -->
-    <config name="php_version" value="70000"/>
-    <config name="testVersion" value="7.0"/>
+    <!-- PHP >= 7.2 -->
+    <config name="php_version" value="70200"/>
+    <config name="testVersion" value="7.2"/>
 
     <file>HeatlaiCodingStandard</file>
 
