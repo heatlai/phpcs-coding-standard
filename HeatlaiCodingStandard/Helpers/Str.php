@@ -2,6 +2,9 @@
 
 namespace HeatlaiCodingStandard\Helpers;
 
+/**
+ * @internal
+ */
 class Str
 {
     /**
