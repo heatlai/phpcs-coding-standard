@@ -62,9 +62,10 @@ class FuelPhpStyleSniff implements Sniff
         // Closing brace should be on a new line.
         $this->detectClosingBraceOnNewLine($phpcsFile, $stackPtr);
 
-        // Break indent should be same level as switch case
+        // BREAK must be indented to the same level as the CASE
+        // RETURN should be indented to the next level of CASE
         if ($tokens[$stackPtr]['code'] === T_SWITCH) {
-            $this->detectBreakIndentSameLevelAsSwitchCase($phpcsFile, $stackPtr);
+            $this->detectSwitchCaseBreakAndReturnIndentLevel($phpcsFile, $stackPtr);
         }
     }
 
@@ -251,7 +252,7 @@ class FuelPhpStyleSniff implements Sniff
         }
     }
 
-    protected function detectBreakIndentSameLevelAsSwitchCase(File $phpcsFile, $stackPtr)
+    protected function detectSwitchCaseBreakAndReturnIndentLevel(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
         $switch = $tokens[$stackPtr];
@@ -263,16 +264,24 @@ class FuelPhpStyleSniff implements Sniff
             if ($tokens[$opener]['code'] === T_COLON && $tokens[$nextCloser]['scope_condition'] === $nextCase) {
                 $prev = $phpcsFile->findPrevious(T_WHITESPACE, ($nextCloser - 1), $nextCase, true);
                 if ($tokens[$prev]['line'] !== $tokens[$nextCloser]['line']) {
-                    $diff = ($tokens[$nextCase]['column'] - $tokens[$nextCloser]['column']);
-                    if ($diff !== 0) {
-                        $error = 'Terminating statement must be indented to the same level as the CASE';
-                        $fix = $phpcsFile->addFixableError($error, $nextCloser, 'SwitchCaseBreakIndent');
-                        if ($fix === true) {
-                            if ($diff > 0) {
-                                $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat(' ', $diff));
-                            } else {
-                                $phpcsFile->fixer->substrToken(($nextCloser - 1), 0, $diff);
+                    if ($tokens[$nextCloser]['code'] === T_BREAK) {
+                        $diff = ($tokens[$nextCase]['column'] - $tokens[$nextCloser]['column']);
+                        if ($diff !== 0) {
+                            $error = 'BREAK must be indented to the same level as the CASE';
+                            $fix = $phpcsFile->addFixableError($error, $nextCloser, 'SwitchCaseBreakIndent');
+                            if ($fix === true) {
+                                if ($diff > 0) {
+                                    $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat(' ', $diff));
+                                } else {
+                                    $phpcsFile->fixer->substrToken(($nextCloser - 1), 0, $diff);
+                                }
                             }
+                        }
+                    } elseif ($tokens[$nextCloser]['code'] === T_RETURN) {
+                        $diff = ($tokens[$nextCase]['column'] - $tokens[$nextCloser]['column']);
+                        if ($diff >= 0) {
+                            $error = 'RETURN should be indented to the next level of CASE';
+                            $phpcsFile->addError($error, $nextCloser, 'SwitchCaseReturnIndent');
                         }
                     }
                 }
