@@ -5,21 +5,10 @@ namespace HeatlaiCodingStandard\Sniffs\NamingConventions;
 use HeatlaiCodingStandard\Helpers\Str;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
+use PHPCSUtils\Utils\Variables;
 
 class SnakeCaseVariableNameSniff implements Sniff
 {
-    protected $phpReservedVars = [
-        '$_SERVER' => true,
-        '$_GET' => true,
-        '$_POST' => true,
-        '$_REQUEST' => true,
-        '$_SESSION' => true,
-        '$_ENV' => true,
-        '$_COOKIE' => true,
-        '$_FILES' => true,
-        '$GLOBALS' => true,
-    ];
-
     public function register()
     {
         return [
@@ -30,10 +19,10 @@ class SnakeCaseVariableNameSniff implements Sniff
     public function process(File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
-        $varName = trim($tokens[$stackPtr]['content']);
+        $varName = $tokens[$stackPtr]['content'];
 
         // If it's a php reserved var, then it's ok.
-        if (isset($this->phpReservedVars[$varName]) === true) {
+        if (Variables::isPHPReservedVarName($varName)) {
             return;
         }
 
