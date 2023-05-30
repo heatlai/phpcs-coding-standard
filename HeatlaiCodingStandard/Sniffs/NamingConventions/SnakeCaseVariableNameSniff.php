@@ -8,6 +8,18 @@ use PHP_CodeSniffer\Sniffs\Sniff;
 
 class SnakeCaseVariableNameSniff implements Sniff
 {
+    protected $phpReservedVars = [
+        '$_SERVER' => true,
+        '$_GET' => true,
+        '$_POST' => true,
+        '$_REQUEST' => true,
+        '$_SESSION' => true,
+        '$_ENV' => true,
+        '$_COOKIE' => true,
+        '$_FILES' => true,
+        '$GLOBALS' => true,
+    ];
+
     public function register()
     {
         return [
@@ -19,6 +31,12 @@ class SnakeCaseVariableNameSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
         $varName = trim($tokens[$stackPtr]['content']);
+
+        // If it's a php reserved var, then it's ok.
+        if (isset($this->phpReservedVars[$varName]) === true) {
+            return;
+        }
+
         $snakeVarName = Str::snake($varName);
 
         if ($varName === $snakeVarName) {
